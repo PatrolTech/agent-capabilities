@@ -3,9 +3,9 @@ export interface PlanUsage {
   plan: string;
   estadoLicencia: string;
   /**
-   * true = la organización ya paga una suscripción. null si no se sabe: el
-   * contrato público no lo expone, así que `SdkPatrolTechGateway` siempre da
-   * null y quien pide un checkout recibe del backend `ALREADY_SUBSCRIBED`.
+   * true = la organización ya paga una suscripción vigente (`hasActiveSubscription`
+   * del contrato 1.2.0). null si no se sabe (un backend anterior no lo manda): quien
+   * pide un checkout recibe entonces del backend `ALREADY_SUBSCRIBED`.
    */
   pagaSuscripcion: boolean | null;
   /** null si el backend no pudo calcular el consumo. */
