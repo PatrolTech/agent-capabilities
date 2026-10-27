@@ -1,0 +1,79 @@
+{
+  "name": "@patroltech/agent-capabilities",
+  "version": "0.2.0",
+  "description": "Channel-agnostic PatrolTech agent capabilities (reads, proposed actions and domain helpers) on top of the public PatrolTech SDK, for chat bots and MCP servers",
+  "license": "MIT",
+  "author": "Ingenieros Web SL <info@patroltech.app>",
+  "homepage": "https://github.com/PatrolTech/agent-capabilities#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PatrolTech/agent-capabilities.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PatrolTech/agent-capabilities/issues"
+  },
+  "keywords": [
+    "patroltech",
+    "guard-tour",
+    "security-patrol",
+    "ai-agent",
+    "mcp",
+    "llm-tools"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "default": "./dist/testing/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "typecheck": "tsc -p tsconfig.spec.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke:staging": "node scripts/staging-smoke.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@patroltech/sdk-api": "^1.1.0",
+    "qrcode": "^1.5.4"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.13.3",
+    "@types/qrcode": "1.5.6",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.9.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.66.0",
+    "vitest": "5.0.5",
+    "zod": "4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org"
+  }
+}
