@@ -212,14 +212,23 @@ describe('SdkPatrolTechGateway — pagos', () => {
     ).rejects.toBeInstanceOf(PatrolTechApiError);
   });
 
-  it('getPlanUsage: pagaSuscripcion es null porque el contrato público no lo expone', async () => {
-    const { f } = fakeFetch(200, {
-      license: { status: 'active' },
-      tier: { name: 'Pro' },
-      usage: null,
-    });
-    const client = new SdkPatrolTechGateway({ baseUrl: apiBase, fetchImpl: f });
+  it.each([
+    [{ hasActiveSubscription: true }, true],
+    [{ hasActiveSubscription: false }, false],
+    // Un backend anterior al contrato 1.2.0 no lo manda: lo decide el 409 del checkout.
+    [{}, null],
+  ])(
+    'getPlanUsage: pagaSuscripcion sale de hasActiveSubscription (%o → %s)',
+    async (extra, esperado) => {
+      const { f } = fakeFetch(200, {
+        ...extra,
+        license: { status: 'active' },
+        tier: { name: 'Pro' },
+        usage: null,
+      });
+      const client = new SdkPatrolTechGateway({ baseUrl: apiBase, fetchImpl: f });
 
-    expect((await client.getPlanUsage('org1', 'jwt')).pagaSuscripcion).toBeNull();
-  });
+      expect((await client.getPlanUsage('org1', 'jwt')).pagaSuscripcion).toBe(esperado);
+    }
+  );
 });
