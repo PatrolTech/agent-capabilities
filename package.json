@@ -48,7 +48,6 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "smoke:staging": "node scripts/staging-smoke.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

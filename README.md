@@ -118,8 +118,7 @@ Names of routes, checkpoints, locations and guards, incident texts and user name
 ## Contract checks
 
 - `src/catalog/public-contract.spec.ts` downloads the public contract published by [`PatrolTech/sdk-api`](https://github.com/PatrolTech/sdk-api) at the tag of the installed SDK version (`v<version>/openapi/openapi.public.json`) and checks that every `operationId` of every capability exists there and as a function of `@patroltech/sdk-api`. Offline, point `PATROLTECH_PUBLIC_CONTRACT` to a local copy of that file.
-- A daily workflow (`staging-smoke.yml`) runs the parameterless `mcp` reads against the staging API with a read-only token and fails on any contract error (an unknown route or parameter, or a response the gateway cannot map).
-- Dependabot opens a pull request for every new SDK version; CI runs both checks on it.
+- Dependabot opens a pull request for every new SDK version; CI runs that check on it.
 
 ### Known contract gaps
 
