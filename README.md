@@ -19,7 +19,7 @@ Channel-agnostic building blocks to let an AI agent **read and act on a PatrolTe
 npm install @patroltech/agent-capabilities zod
 ```
 
-Node.js 24 or later. `zod` 4 is a peer dependency (the capabilities describe their parameters with it). The package is ESM.
+Node.js 22 or later. `zod` 4 is a peer dependency (the capabilities describe their parameters with it). The package is ESM.
 
 ## Quick start
 
