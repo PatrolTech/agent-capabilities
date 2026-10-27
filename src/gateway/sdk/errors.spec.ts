@@ -19,6 +19,30 @@ const gatewayAnswering = (response: () => Response) =>
 const newCheckpoint = { name: 'Entrada', locationId: 'l1', metodo: 'qr_static' as const };
 
 describe('errores del SDK → PatrolTechApiError (mismas semánticas que el cliente del bot)', () => {
+  it('reconoce el ApiError de otra copia del SDK por su forma (name, status, data)', () => {
+    class OtherApiError extends Error {
+      constructor(
+        readonly status: number,
+        message: string,
+        readonly data?: unknown
+      ) {
+        super(message);
+        this.name = 'ApiError';
+      }
+    }
+
+    const mapped = toPatrolTechApiError(new OtherApiError(409, 'x', { code: 'C' }), '/api/x');
+
+    expect(mapped).toBeInstanceOf(PatrolTechApiError);
+    expect(mapped).toMatchObject({ status: 409, path: '/api/x', body: { code: 'C' } });
+  });
+
+  it('un Error cualquiera no se convierte', () => {
+    const err = new TypeError('boom');
+
+    expect(toPatrolTechApiError(err, '/api/x')).toBe(err);
+  });
+
   it('402 de límite: conserva el cuerpo entero (code, limit, currentUsage, resource, upsell) y se traduce a plan_limit', async () => {
     const body = {
       code: 'CHECKPOINT_LIMIT_REACHED',

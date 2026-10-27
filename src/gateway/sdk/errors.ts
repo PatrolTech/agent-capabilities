@@ -23,8 +23,22 @@ function errorBody(data: unknown): unknown {
  * que lee `translateBackendError`. Cualquier otro error (red, timeout) sigue igual.
  */
 export function toPatrolTechApiError(err: unknown, path: string): unknown {
-  if (!(err instanceof ApiError)) return err;
+  if (!isSdkApiError(err)) return err;
   return new PatrolTechApiError(err.status, path, errorBody(err.data));
+}
+
+/**
+ * El `ApiError` de `@patroltech/sdk-api`, o el de otra copia o compilación del SDK
+ * con la misma forma (dos versiones instaladas, o la función de otro SDK que un
+ * consumidor pasa a `callSdk`): `instanceof` solo reconoce la clase de esta copia.
+ */
+function isSdkApiError(err: unknown): err is Pick<ApiError, 'status' | 'data'> {
+  if (err instanceof ApiError) return true;
+  return (
+    err instanceof Error &&
+    err.name === 'ApiError' &&
+    typeof (err as { status?: unknown }).status === 'number'
+  );
 }
 
 /** ¿El backend ha respondido 404? Para las lecturas en las que «no existe» es null, no un error. */
