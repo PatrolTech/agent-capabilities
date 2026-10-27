@@ -14,6 +14,14 @@ updates:
       # A TypeScript major changes the emitted code and module options: on purpose only.
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
+      # Node types follow the oldest supported runtime (engines >=22), not the newest Node.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # An ESLint major changes the flat config and the plugin ecosystem: on purpose only.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
     groups:
       # Each SDK version gets its own pull request.
       patroltech-sdk:
