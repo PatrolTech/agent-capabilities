@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 7
+      # Our own SDK is followed without waiting: CI checks every new version
+      # against its published contract (src/catalog/public-contract.spec.ts).
+      exclude:
+        - '@patroltech/sdk-api'
+    ignore:
+      # A TypeScript major changes the emitted code and module options: on purpose only.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+    groups:
+      # Each SDK version gets its own pull request.
+      patroltech-sdk:
+        patterns:
+          - '@patroltech/sdk-api'
+      dev-dependencies:
+        dependency-type: development
+        patterns:
+          - '*'
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # No install scripts: nothing in the toolchain needs them.
+      - run: npm ci --ignore-scripts
+
+      - run: npm run format:check
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      # Includes the check of every operationId against the public contract
+      # published for the installed @patroltech/sdk-api version.
+      - run: npm test
+
+      - run: npm run build
+
+      - name: Load the package as a consumer would
+        run: |
+          node --input-type=module -e "import { buildCatalog, SdkPatrolTechGateway } from '@patroltech/agent-capabilities'; const { reads } = buildCatalog({ gateway: new SdkPatrolTechGateway({ baseUrl: 'https://api.invalid' }) }, { channel: 'mcp' }); if (reads.length === 0) process.exit(1)"
+          node --input-type=module -e "import { FakePatrolTechGateway } from '@patroltech/agent-capabilities/testing'; if (typeof FakePatrolTechGateway !== 'function') process.exit(1)"
+
+      - name: Check the package contents
+        run: |
+          npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/pack.json"
+          node -e "
+            const files = require(process.argv[1])[0].files.map((f) => f.path);
+            const extra = files.filter((f) => !/^(dist\/|README\.md$|LICENSE$|package\.json$)/.test(f));
+            const specs = files.filter((f) => /\.spec\./.test(f));
+            if (extra.length || specs.length) { console.error('Unexpected files:', [...extra, ...specs]); process.exit(1); }
+          " "$RUNNER_TEMP/pack.json"
