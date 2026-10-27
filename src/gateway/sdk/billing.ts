@@ -62,11 +62,10 @@ export async function getPlanUsage(
   return {
     plan: body.tier.name,
     estadoLicencia: body.license.status,
-    // El contrato público no dice si la organización ya paga una suscripción: lo
-    // decide el backend al pedir un checkout (409 `ALREADY_SUBSCRIBED`).
-    // TODO: leer `hasActiveSubscription` de `getLicenseInfo` cuando lo publique el
-    // contrato 1.2.0 (@patroltech/sdk-api 1.2.0); el respaldo del 409 se queda.
-    pagaSuscripcion: null,
+    // Si ya paga una suscripción vigente (contrato 1.2.0), sin ningún id del
+    // proveedor. Un backend anterior no lo manda: null, y decide el 409
+    // `ALREADY_SUBSCRIBED` del checkout.
+    pagaSuscripcion: body.hasActiveSubscription ?? null,
     uso: u
       ? {
           checkpoints: {
