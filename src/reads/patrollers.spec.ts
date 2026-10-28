@@ -141,3 +141,29 @@ describe('enlaces_app_vigilantes', () => {
     expect(out.data?.enlaceGeneral).toBe('https://app.staging.test/org-a');
   });
 });
+
+describe('consultar_ranking_vigilantes', () => {
+  it('avisa, en el idioma del usuario, de que son datos de actividad y no una valoración de la persona', async () => {
+    const { run, ctx } = readHarness();
+
+    const es = await run('consultar_ranking_vigilantes');
+    const en = await run('consultar_ranking_vigilantes', {}, { ...ctx, language: 'en' });
+
+    expect(es.avisos?.join(' ')).toMatch(/actividad.*no (es )?una valoración/i);
+    expect(es.avisos?.join(' ')).toMatch(/turnos|ausencias/i);
+    expect(en.avisos?.join(' ')).toMatch(/activity.*not an assessment/i);
+    expect(en.avisos?.join(' ')).toMatch(/shifts|absences/i);
+  });
+
+  it('el recorte va solo en el resultado, no repetido dentro de los datos', async () => {
+    const { run, gateway } = readHarness();
+    gateway.truncado = true;
+
+    const out = await run('consultar_ranking_vigilantes');
+
+    expect(out.ok).toBe(true);
+    expect(out.truncado).toBe(true);
+    expect(out.data).not.toHaveProperty('truncado');
+    expect(out.data).toHaveProperty('ranking');
+  });
+});
