@@ -160,7 +160,7 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
       en: 'Use when you want to know which guards exist and when their last scan was.',
     },
     returns: {
-      en: 'Returns each guard with their status and latest activity (timestamps in UTC). With `truncated: true` the list is capped.',
+      en: 'Returns each guard with their status and latest activity (timestamps in UTC). With `truncated: true` the list is capped. To compare guards with each other, use the guard ranking instead of building one from this list.',
     },
     operationIds: ['listPatrollers'],
   }),
@@ -182,11 +182,11 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
     capability: 'consultar_ranking_vigilantes',
     title: { es: 'Ranking de vigilantes', en: 'Guard ranking' },
     summary: {
-      es: 'Úsala cuando quieras comparar a los vigilantes por rondas completadas y escaneos en un periodo.',
-      en: 'Use when you want to compare guards by rounds completed and scans over a period.',
+      es: 'Úsala cuando quieras comparar a los vigilantes por rondas completadas y escaneos en un periodo, en vez de montar tú la comparación.',
+      en: 'Use when you want to compare guards by rounds completed and scans over a period, instead of building the comparison yourself.',
     },
     returns: {
-      en: 'Returns the guards ordered from best to worst, each with `totalScans`, `roundsCompleted`, `completionRate` (percent) and `avgTimeBetweenScans` (seconds; null without data), plus a team `summary` and the most scanned checkpoints (`topCheckpoints`). Dates are calendar days in the time zone of the account; without a period it covers everything the data retention allows. `retentionCutoff` (UTC; null when unlimited): the period never starts before it, so older activity is not counted. With `truncated: true` the list is capped.',
+      en: 'Returns the guards ordered by their activity in the period (rounds completed, completion rate, scans), each with `totalScans`, `roundsCompleted`, `completionRate` (percent) and `avgTimeBetweenScans` (seconds; null without data), plus a team `summary` and the most scanned checkpoints (`topCheckpoints`). Dates are calendar days in the time zone of the account; without a period it covers everything the data retention allows. `retentionCutoff` (UTC; null when unlimited): the period never starts before it, so older activity is not counted. With `truncated: true` the list is capped. It is activity data, not an assessment of the people (it does not see shifts, absences or assigned tasks): present it with its period and do not draw conclusions from it on your own about the performance or employment of anyone.',
     },
     operationIds: ['getPatrollerRanking'],
   }),
@@ -199,7 +199,7 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
       en: 'Use when you want how many scans each guard made over a period.',
     },
     returns: {
-      en: 'Returns how many scans each guard made in the period (default: the last 7 days; dates are calendar days in the time zone of the account) and how many of them were `valid`, `suspicious`, `invalid` (rejected) and `pendingReview`, ordered by total (`position`), including guards without scans. Valid and suspicious are independent: a scan can be both. Scans older than the data retention period come without their guard and are counted together under "(sin vigilante)". With `truncated: true` only the most recent scans were counted: the counts are partial.',
+      en: 'Returns how many scans each guard made in the period (default: the last 7 days; dates are calendar days in the time zone of the account) and how many of them were `valid`, `suspicious`, `invalid` (rejected) and `pendingReview`, ordered by total (`position`), including guards without scans. Valid and suspicious are independent: a scan can be both. Scans older than the data retention period come without their guard and are counted together under "(sin vigilante)". With `truncated: true` only the most recent scans were counted: the counts are partial. Activity counts, not an assessment of the people.',
     },
     operationIds: ['listScans', 'listPatrollers'],
   }),
@@ -225,7 +225,7 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
       en: 'Use when you want to see open or recent incidents, with their status and priority.',
     },
     returns: {
-      en: 'Returns incidents from newest to oldest with their position in the list (`number`), `id`, title, status, priority, assignee and date (UTC). Incidents older than the data retention period come without their title. To refer to one later, use its title or `id`.',
+      en: 'Returns incidents from newest to oldest with their position in the list (`number`), `id`, title, `status` (open, in_progress, resolved, closed or dismissed), `priority` (low, medium, high or critical), assignee and date (UTC). Incidents older than the data retention period come without their title. To refer to one later, use its title or `id`.',
     },
     operationIds: ['listIncidents'],
   }),

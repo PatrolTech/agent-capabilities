@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { resolveDateRange, type Periodo } from '../domain/date-range.js';
 import { guardAppMessage } from '../domain/guard-app-message.js';
+import { segunIdioma, type FixedTextLanguage } from '../domain/language.js';
 import { validationBucket } from '../domain/scan-explanation.js';
 import { ok, type ToolResult } from '../domain/tool-result.js';
 import type {
@@ -27,7 +28,7 @@ const vigilantesDesc =
 const statsVigilanteDesc =
   "Consulta las estadísticas de un vigilante concreto por su nombre: total de escaneos, rondas completadas/totales, tasa de finalización y tiempo medio entre escaneos. Úsala cuando el usuario pregunte por un vigilante específico (p. ej. '¿cómo va Juan García?', 'estadísticas de María'). Si el resultado trae `ambigua`, el nombre casa con varios vigilantes: pregunta cuál.";
 const rankingDesc =
-  "Consulta el ranking de vigilantes de la organización: cada uno con sus escaneos, rondas completadas y tasa de finalización (ordenado de mejor a peor), más un resumen del equipo y los checkpoints más escaneados. Admite periodo/fechas. Úsala para '¿quién va mejor/peor?', 'ranking de vigilantes', 'cómo va el equipo', 'qué checkpoint se escanea más'." +
+  "Consulta el ranking de vigilantes de la organización: cada uno con sus escaneos, rondas completadas y tasa de finalización (ordenado de mejor a peor), más un resumen del equipo y los checkpoints más escaneados. Admite periodo/fechas. Úsala para '¿quién va mejor/peor?', 'ranking de vigilantes', 'cómo va el equipo', 'qué checkpoint se escanea más', en vez de montar tú un ranking con la actividad o los escaneos. Son datos de actividad, no una valoración de las personas: preséntalos con su periodo y sin sacar por tu cuenta conclusiones sobre el desempeño o el empleo de nadie." +
   TRUNCADO_HINT;
 const escaneosPorVigilanteDesc =
   'Recuento de escaneos por vigilante en un periodo (por defecto los últimos 7 días): total, válidos, sospechosos, no válidos (rechazados) y pendientes de revisión, ordenado de más a menos escaneos (`puesto`). Incluye a los vigilantes sin ningún escaneo. Úsala para «¿cuántos escaneos ha hecho cada vigilante?», «ranking por escaneos», «¿quién tiene más sospechosos?». Válido y sospechoso son independientes: un escaneo puede ser las dos cosas. Para rondas completadas y tasa de finalización usa consultar_ranking_vigilantes.';
@@ -42,13 +43,33 @@ function statsVigilanteResult(result: PatrollerStatsResult): ToolResult<Patrolle
   return failNoEncontrado('vigilante', result.opciones);
 }
 
-/** El ranking no es una `ListaTruncable`, pero avisa del cap igual que las demás. */
-function okRanking(ranking: PatrollerRanking, avisosExtra: string[]): ToolResult<PatrollerRanking> {
-  const avisos = [...avisosExtra];
-  if (ranking.truncado) {
+/**
+ * Cómo presentar un ranking de personas: son recuentos de actividad del periodo, no una valoración
+ * de nadie (no ven turnos, ausencias ni tareas asignadas). Indicación, no prohibición: el
+ * ranking se da, con su contexto.
+ */
+export function avisoRankingPrudente(idioma: FixedTextLanguage): string {
+  return segunIdioma(idioma, {
+    es: 'Son datos de actividad del periodo, no una valoración de las personas: no reflejan turnos, ausencias ni las tareas que tenía asignadas cada vigilante. Preséntalos como datos, con su periodo, y no saques de ellos por tu cuenta conclusiones sobre el desempeño ni decisiones laborales de nadie.',
+    en: "This is activity data for the period, not an assessment of the people: it does not reflect shifts, absences or each guard's assigned tasks. Present it as data, with its period, and do not draw conclusions about anyone's performance or employment from it on your own.",
+    fr: "Ce sont des données d'activité de la période, pas une évaluation des personnes : elles ne reflètent ni les horaires, ni les absences, ni les tâches assignées à chaque agent. Présentez-les comme des données, avec leur période, et n'en tirez pas vous-même de conclusions sur la performance ou l'emploi de quiconque.",
+  });
+}
+
+/**
+ * El ranking no es una `ListaTruncable`, pero avisa del cap igual que las demás (el recorte va en
+ * el resultado, no repetido en los datos) y siempre con el aviso de prudencia.
+ */
+function okRanking(
+  { truncado, ...ranking }: PatrollerRanking,
+  avisosExtra: string[],
+  idioma: FixedTextLanguage
+): ToolResult<Omit<PatrollerRanking, 'truncado'>> {
+  const avisos = [...avisosExtra, avisoRankingPrudente(idioma)];
+  if (truncado) {
     avisos.push(avisoTruncado(ranking.ranking.length, undefined, 'vigilantes del ranking'));
   }
-  return ok(ranking, { truncado: ranking.truncado, avisos });
+  return ok(ranking, { truncado, avisos });
 }
 
 async function escaneosPorVigilante(
@@ -134,7 +155,7 @@ export function patrollerReads({ gateway, urls }: ReadEnv): ReadCapability[] {
       name: 'consultar_ranking_vigilantes',
       description: rankingDesc,
       params: scansParamSchema,
-      call: async ({ org, token, tz }, { periodo, desde, hasta }) => {
+      call: async ({ org, token, tz, language }, { periodo, desde, hasta }) => {
         const { dateFrom, dateTo, avisos } = resolveDateRange(
           periodo,
           desde,
@@ -143,7 +164,7 @@ export function patrollerReads({ gateway, urls }: ReadEnv): ReadCapability[] {
           tz
         );
         const ranking = await gateway.getPatrollerRanking(org.orgId, token, { dateFrom, dateTo });
-        return okRanking(ranking, avisos ?? []);
+        return okRanking(ranking, avisos ?? [], language);
       },
     }),
     defineRead({
