@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { internalParamNames } from '../actions/index.js';
+import type { IncidentDetail } from '../gateway/index.js';
 import { FakePatrolTechGateway } from '../testing/index.js';
 import { capabilityContext } from '../testing/reads.js';
 import { buildCatalog } from './buildCatalog.js';
@@ -114,17 +115,263 @@ describe('argsFromEnglish', () => {
   });
 });
 
-describe('englishFields', () => {
-  it('no mcp read returns a Spanish field name', async () => {
-    const { reads } = mcp();
-    const ctx = capabilityContext();
+/**
+ * Las claves en inglés que puede devolver una lectura `mcp` (ya traducidas o en inglés de origen).
+ * Una clave nueva tiene que estar aquí o en el diccionario: así no se cuela una en español.
+ */
+const ENGLISH_OUTPUT_KEYS = new Set([
+  'active',
+  'activePatrollers',
+  'address',
+  'admin',
+  'alert',
+  'assignedTo',
+  'atLeast',
+  'author',
+  'avgScansPerPatroller',
+  'avgTimeBetweenScans',
+  'bestCompletionRate',
+  'category',
+  'checkpoint',
+  'checkpointName',
+  'checkpoints',
+  'checkpointsCreated',
+  'closedAt',
+  'completed',
+  'completedCheckpoints',
+  'completionRate',
+  'createdAt',
+  'date',
+  'daysWithoutScan',
+  'description',
+  'done',
+  'editor',
+  'email',
+  'end',
+  'endTime',
+  'entries',
+  'entriesWithoutExit',
+  'exits',
+  'expired',
+  'flagged',
+  'fraudFlagged',
+  'from',
+  'generalLink',
+  'guard',
+  'guards',
+  'guardsWithScans',
+  'hasScans',
+  'hidden',
+  'history',
+  'id',
+  'inProgress',
+  'inactive',
+  'included',
+  'incomplete',
+  'insideNow',
+  'invalid',
+  'isActive',
+  'lastScan',
+  'lastScanAt',
+  'latest',
+  'limit',
+  'link',
+  'links',
+  'location',
+  'locationName',
+  'locations',
+  'managers',
+  'messageToForward',
+  'name',
+  'nextStep',
+  'noVisibleScans',
+  'number',
+  'open',
+  'patrollerName',
+  'patrollers',
+  'pending',
+  'pendingReview',
+  'people',
+  'photos',
+  'position',
+  'priority',
+  'ranking',
+  'reason',
+  'reportedBy',
+  'resolvedAt',
+  'roles',
+  'round',
+  'rounds',
+  'roundsCompleted',
+  'route',
+  'routeName',
+  'routesCreated',
+  'scanned',
+  'schedules',
+  'scope',
+  'start',
+  'startTime',
+  'status',
+  'summary',
+  'suspicionReasons',
+  'suspicious',
+  'suspiciousScans',
+  'time',
+  'timestamp',
+  'timezone',
+  'title',
+  'to',
+  'topCheckpoints',
+  'total',
+  'totalCheckpoints',
+  'totalScans',
+  'type',
+  'usage',
+  'used',
+  'users',
+  'valid',
+  'validation',
+  'videos',
+  'viewer',
+  'what',
+  'whatEachRoleDoes',
+  'who',
+  'windowDays',
+  'withoutRecordedExit',
+  'zone',
+  // Del backend, en inglés de origen.
+  'found',
+  'incidentsOpen',
+  'incidentsReported',
+  'order',
+  'patroller',
+  'retentionCutoff',
+  'scanTime',
+  'scannedCount',
+  'totalCount',
+  'totalRounds',
+]);
 
-    for (const { meta, read } of reads) {
-      const result = await read.call(ctx, meta.id === 'incidents.get' ? { incidencia: '1' } : {});
-      for (const key of keysOf(englishFields(result.ok ? result.data : null))) {
-        expect(looksSpanish(key), `${meta.id}.${key}`).toBe(false);
+const incidentDetail = (estado: IncidentDetail['estado']): IncidentDetail => ({
+  id: 'inc-1',
+  oculta: false,
+  titulo: 'Puerta del almacén forzada',
+  descripcion: 'Apareció abierta',
+  estado,
+  prioridad: 'CRITICAL',
+  categoria: 'Seguridad',
+  subcategoria: null,
+  reportadaPor: 'Juan Pérez',
+  asignadaA: null,
+  locationId: 'loc-central',
+  creadaEn: '2026-07-29T09:00:00Z',
+  resueltaEn: null,
+  cerradaEn: null,
+  checkpoints: ['Almacén'],
+  timeline: [
+    {
+      tipo: 'COMMENT',
+      autor: 'Juan Pérez',
+      texto: 'Avisado',
+      antes: null,
+      despues: null,
+      fecha: '2026-07-29T10:00:00Z',
+      conAdjunto: false,
+    },
+  ],
+  fotos: 0,
+  videos: 0,
+});
+
+/** Las salidas de las lecturas `mcp` en sus casos con datos, como las ve el modelo. */
+async function mcpOutputs(): Promise<{ id: string; data: unknown }[]> {
+  const gateway = new FakePatrolTechGateway();
+  gateway.incidentDetails['inc-1'] = incidentDetail('IN_PROGRESS');
+  const entry = (id: string, tipo: 'ENTRY' | 'EXIT', fecha: string) => ({
+    id,
+    fecha,
+    tipo,
+    locationId: 'loc-central',
+    zona: 'Portería',
+    persona: 'Ana',
+    identificadorPersona: null,
+    visitante: null,
+    documentoVisitante: null,
+    empresaVisitante: null,
+    destino: null,
+    notas: null,
+    oculto: false,
+  });
+  const now = Date.now();
+  gateway.accessLogs = [entry('a1', 'ENTRY', new Date(now - 3_600_000).toISOString())];
+  gateway.activeAccessEntries = [
+    entry('a1', 'ENTRY', new Date(now - 3_600_000).toISOString()),
+    entry('a2', 'ENTRY', new Date(now - 3 * 86_400_000).toISOString()),
+  ];
+  const { reads } = buildCatalog({ gateway }, { channel: 'mcp' });
+  const calls: [string, Record<string, unknown>][] = [
+    ...reads.map(({ meta }): [string, Record<string, unknown>] => [meta.id, {}]),
+    ['incidents.get', { incidencia: 'almacén' }],
+    ['patrollers.get_stats', { vigilante: 'Juan' }],
+    ['patrollers.get_app_links', { vigilante: 'Juan Pérez' }],
+    ['rounds.get_checkpoints', { ruta: 'Ruta Norte' }],
+    ['rounds.get_round', { ruta: 'Ruta Sur' }],
+    ['access.list_logs', { solo_dentro: true }],
+  ];
+  const outputs: { id: string; data: unknown }[] = [];
+  for (const [id, args] of calls) {
+    const read = reads.find(({ meta }) => meta.id === id)!.read;
+    const result = await read.call(capabilityContext(), args);
+    if (result.ok) outputs.push({ id, data: englishFields(result.data) });
+  }
+  return outputs;
+}
+
+describe('englishFields', () => {
+  it('every field name of every mcp read is English (translated or English at the source)', async () => {
+    const outputs = await mcpOutputs();
+    // Cada lectura `mcp` aporta al menos una salida con datos.
+    expect(new Set(outputs.map(({ id }) => id))).toEqual(
+      new Set(mcp().reads.map(({ meta }) => meta.id))
+    );
+    for (const { id, data } of outputs) {
+      for (const key of keysOf(data)) {
+        expect(looksSpanish(key), `${id}.${key}`).toBe(false);
+        expect(ENGLISH_OUTPUT_KEYS.has(key), `${id}.${key} is not a known English field`).toBe(
+          true
+        );
       }
     }
+  });
+
+  it('gives incident statuses and priorities the vocabulary of the English params', async () => {
+    const outputs = await mcpOutputs();
+    const list = outputs.find(({ id }) => id === 'incidents.list')!.data as Record<
+      string,
+      unknown
+    >[];
+    const detail = outputs.find(({ id }) => id === 'incidents.get')!.data;
+
+    expect(list.map(({ status, priority }) => [status, priority])).toEqual([
+      ['open', 'high'],
+      ['in_progress', 'low'],
+      ['closed', 'medium'],
+    ]);
+    expect(detail).toMatchObject({ status: 'in_progress', priority: 'critical' });
+    // Los mismos valores que acepta el parámetro `status` de la lista.
+    const { params } = mcp().reads.find(({ meta }) => meta.id === 'incidents.list')!.read;
+    const schema = z.object(englishInputSchema('incidents.list', params));
+    for (const { status } of list) expect(schema.safeParse({ status }).success).toBe(true);
+    expect(englishFields({ estado: 'Descartado', prioridad: 'Baja' })).toEqual({
+      status: 'dismissed',
+      priority: 'low',
+    });
+  });
+
+  it('only translates the values of those fields, never names written by users', () => {
+    expect(
+      englishFields({ nombre: 'Alta', titulo: 'Abierto', estado: 'completed', ruta: 'Media' })
+    ).toEqual({ name: 'Alta', title: 'Abierto', status: 'completed', route: 'Media' });
   });
 
   it('renames the keys at any depth and leaves values alone', () => {

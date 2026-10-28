@@ -6,6 +6,7 @@ import {
   INCIDENT_STATUS_PARAMS,
   type IncidentStatus,
 } from '../domain/incident-status.js';
+import { incidentPriorityLabel } from '../domain/incident-priority.js';
 import { resolveByName } from '../domain/resolve-by-name.js';
 import { fail, ok, type ToolResult } from '../domain/tool-result.js';
 import type {
@@ -32,12 +33,6 @@ const incidenciaDesc =
 
 const APP_INCIDENCIAS_APAGADA =
   'La App de Incidencias no está activa en esta organización: no hay incidencias. La activa un Admin en el panel, en Apps → Gestión de Incidencias.';
-const PRIORIDAD_LABEL: Record<string, string> = {
-  LOW: 'Baja',
-  MEDIUM: 'Media',
-  HIGH: 'Alta',
-  CRITICAL: 'Crítica',
-};
 // El historial va al modelo entero hasta 30 entradas; las incidencias
 // con más vida se cortan por las más recientes y se avisa.
 const MAX_HISTORIAL = 30;
@@ -61,7 +56,7 @@ async function listarIncidencias(
 function valorCambio(v: string | null): string {
   if (!v) return '(vacío)';
   if (v in INCIDENT_STATUS_LABELS) return INCIDENT_STATUS_LABELS[v as IncidentStatus].es;
-  return PRIORIDAD_LABEL[v] ?? v;
+  return incidentPriorityLabel(v);
 }
 
 /** Una entrada del historial en una frase, sin URLs. */
@@ -153,7 +148,7 @@ async function consultarIncidencia(
       titulo: d.titulo,
       descripcion: d.descripcion,
       estado,
-      prioridad: PRIORIDAD_LABEL[d.prioridad] ?? d.prioridad,
+      prioridad: incidentPriorityLabel(d.prioridad),
       categoria: [d.categoria, d.subcategoria].filter(Boolean).join(' / ') || null,
       reportadaPor: d.reportadaPor,
       asignadaA: d.asignadaA,
@@ -194,7 +189,7 @@ export function incidentReads({ gateway }: ReadEnv): ReadCapability[] {
           id: i.id,
           titulo: i.titulo ?? '(oculta por la retención de datos)',
           estado: INCIDENT_STATUS_LABELS[i.estado].es,
-          prioridad: PRIORIDAD_LABEL[i.prioridad] ?? i.prioridad,
+          prioridad: incidentPriorityLabel(i.prioridad),
           asignadoA: i.asignadoAId ? (i.asignadoA ?? 'un usuario') : null,
           fecha: i.creadaEn,
         }));

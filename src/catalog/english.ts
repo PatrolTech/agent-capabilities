@@ -1,4 +1,6 @@
 import type { z } from 'zod';
+import { INCIDENT_PRIORITIES } from '../domain/incident-priority.js';
+import { INCIDENT_STATUS_LABELS, INCIDENT_STATUS_PARAM } from '../domain/incident-status.js';
 
 /**
  * La cara en inglés de las capacidades para los canales en inglés (el MCP): las capacidades y el
@@ -6,7 +8,8 @@ import type { z } from 'zod';
  *
  * Diccionarios fijos, no i18n. Un parámetro nuevo de una capacidad del canal `mcp` sin
  * nombre o descripción aquí hace fallar `englishInputSchema` (y el test del catálogo); un campo de
- * salida nuevo sin entrada sale tal cual, en español.
+ * salida nuevo que no esté aquí ni en la lista de campos en inglés del test hace fallar ese test.
+ * Los textos para personas (resúmenes, avisos, motivos) no son nombres: siguen el idioma del usuario.
  */
 
 /** Nombres en inglés de parámetros y campos, los mismos en la entrada y en la salida. */
@@ -148,6 +151,22 @@ const VALUES: Readonly<Record<string, string>> = {
   sab: 'sat',
   dom: 'sun',
 };
+
+/**
+ * Valores de salida que son etiquetas fijas del panel, por campo (con su nombre en español): el
+ * modelo los ve con el mismo vocabulario que los parámetros en inglés (`status: 'open'`). Solo
+ * esos campos y esas etiquetas: un nombre escrito por un usuario («Alta») nunca se toca.
+ */
+const OUTPUT_VALUES: Readonly<Partial<Record<string, Readonly<Partial<Record<string, string>>>>>> =
+  {
+    estado: Object.fromEntries(
+      Object.entries(INCIDENT_STATUS_PARAM).map(([param, code]) => [
+        INCIDENT_STATUS_LABELS[code].es,
+        VALUES[param] ?? param,
+      ])
+    ),
+    prioridad: Object.fromEntries(Object.values(INCIDENT_PRIORITIES).map(({ es, en }) => [es, en])),
+  };
 
 const OMIT_IF_UNCHANGED = 'Omit it if it does not change.';
 const DATE_FROM = 'Start date of the range, YYYY-MM-DD (never words like "yesterday").';
@@ -394,12 +413,21 @@ export function argsFromEnglish(
   return out;
 }
 
-/** Los datos que devuelve una capacidad con sus claves en inglés (los valores no se tocan). */
+/** El valor de un campo de salida: traducido solo si es una etiqueta fija de ese campo. */
+function englishOutputValue(key: string, value: unknown): unknown {
+  if (typeof value === 'string') return OUTPUT_VALUES[key]?.[value] ?? value;
+  return englishFields(value);
+}
+
+/**
+ * Los datos que devuelve una capacidad con sus claves en inglés. Los valores no se tocan, salvo las
+ * etiquetas fijas de estado y prioridad de las incidencias (`OUTPUT_VALUES`).
+ */
 export function englishFields(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(englishFields);
   if (value && Object.getPrototypeOf(value) === Object.prototype) {
     return Object.fromEntries(
-      Object.entries(value).map(([key, v]) => [english(key), englishFields(v)])
+      Object.entries(value).map(([key, v]) => [english(key), englishOutputValue(key, v)])
     );
   }
   return value;

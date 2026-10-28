@@ -57,7 +57,7 @@ const result = await status?.read.call(ctx, {});
 // result: { ok: true, data: ... } or { ok: false, error: '...' } (never a raw API error)
 ```
 
-Each entry comes with its metadata (`meta`): a stable `id` (`rounds.get_status`), `title` and `summary` in English and Spanish, `returns` (how to read the result, for reads), `readOnly`, `destructive`, `scope` and the SDK `operationIds` it calls. MCP servers should describe tools with `meta.title`, `meta.summary` and `meta.returns`. For English tool schemas, `englishInputSchema(meta.id, params)` translates the parameter names and descriptions, `argsFromEnglish` maps the arguments back and `englishFields` translates the output fields.
+Each entry comes with its metadata (`meta`): a stable `id` (`rounds.get_status`), `title` and `summary` in English and Spanish, `returns` (how to read the result, for reads), `readOnly`, `destructive`, `scope` and the SDK `operationIds` it calls. MCP servers should describe tools with `meta.title`, `meta.summary` and `meta.returns`. For English tool schemas, `englishInputSchema(meta.id, params)` translates the parameter names and descriptions, `argsFromEnglish` maps the arguments back and `englishFields` translates the output field names (and the fixed incident status and priority labels, to the values the English params use). Texts written for people (summaries, notices, reasons) follow the language of the user.
 
 ### One gateway, many users
 
