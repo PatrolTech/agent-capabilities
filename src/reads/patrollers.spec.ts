@@ -167,3 +167,44 @@ describe('consultar_ranking_vigilantes', () => {
     expect(out.data).toHaveProperty('ranking');
   });
 });
+
+describe('ranking y estadísticas de un vigilante: solo cifras, sin juicio', () => {
+  const casos = [
+    ['consultar_ranking_vigilantes', {}],
+    ['consultar_stats_vigilante', { vigilante: 'Juan' }],
+  ] as const;
+
+  it.each(casos)(
+    '%s pide no afirmar si alguien lo hizo bien o mal, ni si cumplió o falló',
+    async (name, args) => {
+      const { run, ctx } = readHarness();
+
+      const es = await run(name, args);
+      const en = await run(name, args, { ...ctx, language: 'en' });
+      const fr = await run(name, args, { ...ctx, language: 'fr' });
+
+      expect(es.ok).toBe(true);
+      expect(es.avisos?.join(' ')).toMatch(/no afirmes si alguien lo ha hecho bien o mal/i);
+      expect(es.avisos?.join(' ')).toMatch(/cumplido o fallado/i);
+      expect(es.avisos?.join(' ')).toMatch(/solo cifras.*periodo/i);
+      expect(en.avisos?.join(' ')).toMatch(/do not say whether anyone did well or badly/i);
+      expect(en.avisos?.join(' ')).toMatch(/met or failed/i);
+      expect(fr.avisos?.join(' ')).toMatch(/bien ou mal/i);
+    }
+  );
+});
+
+describe('descripciones: qué es la tasa de finalización', () => {
+  it.each(['consultar_ranking_vigilantes', 'consultar_stats_vigilante'])(
+    '%s la define como checkpoints escaneados sobre el total de checkpoints de sus rondas',
+    (name) => {
+      const read = readCapabilities({ gateway: new FakePatrolTechGateway() }).find(
+        (r) => r.name === name
+      )!;
+      expect(read.description).toMatch(
+        /porcentaje de checkpoints escaneados sobre el total de checkpoints de sus rondas/
+      );
+      expect(read.description).toMatch(/no es el porcentaje de rondas completadas/);
+    }
+  );
+});

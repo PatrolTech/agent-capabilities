@@ -302,3 +302,15 @@ describe('buildCatalog', () => {
     }
   });
 });
+
+describe('returns.en: completionRate', () => {
+  it.each(['patrollers.get_stats', 'patrollers.get_ranking'])(
+    '%s defines it as the checkpoints scanned out of all the checkpoints of the rounds',
+    (id) => {
+      const meta = READ_ENTRIES.find((e) => e.id === id)!;
+      expect(meta.returns?.en).toMatch(
+        /`completionRate` \(percent of the checkpoints scanned out of all the checkpoints of the rounds of the guard; not the share of rounds completed\)/
+      );
+    }
+  );
+});

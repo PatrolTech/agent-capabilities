@@ -173,7 +173,7 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
       en: 'Use when you want the statistics of one specific guard.',
     },
     returns: {
-      en: 'Returns the totals of one guard over their whole history: `totalScans`, `roundsCompleted` out of `totalRounds`, `completionRate` (percent of the checkpoints of their rounds that were scanned), `avgTimeBetweenScans` (seconds; null without data) and, when known, `incidentsReported` and `incidentsOpen`. `retentionCutoff` (UTC; null when unlimited): activity before it still counts in the totals, but its details are no longer shown. If the name matches several guards or none, it fails with the names to choose from.',
+      en: 'Returns the totals of one guard over their whole history: `totalScans`, `roundsCompleted` out of `totalRounds`, `completionRate` (percent of the checkpoints scanned out of all the checkpoints of the rounds of the guard; not the share of rounds completed), `avgTimeBetweenScans` (seconds; null without data) and, when known, `incidentsReported` and `incidentsOpen`. `retentionCutoff` (UTC; null when unlimited): activity before it still counts in the totals, but its details are no longer shown. If the name matches several guards or none, it fails with the names to choose from.',
     },
     operationIds: ['listPatrollers', 'getPatrollerStats'],
   }),
@@ -186,7 +186,7 @@ export const READ_ENTRIES: readonly CapabilityMeta[] = [
       en: 'Use when you want to compare guards by rounds completed and scans over a period, instead of building the comparison yourself.',
     },
     returns: {
-      en: 'Returns the guards ordered by their activity in the period (rounds completed, completion rate, scans), each with `totalScans`, `roundsCompleted`, `completionRate` (percent) and `avgTimeBetweenScans` (seconds; null without data), plus a team `summary` and the most scanned checkpoints (`topCheckpoints`). Dates are calendar days in the time zone of the account; without a period it covers everything the data retention allows. `retentionCutoff` (UTC; null when unlimited): the period never starts before it, so older activity is not counted. With `truncated: true` the list is capped. It is activity data, not an assessment of the people (it does not see shifts, absences or assigned tasks): present it with its period and do not draw conclusions from it on your own about the performance or employment of anyone.',
+      en: 'Returns the guards ordered by their activity in the period (rounds completed, completion rate, scans), each with `totalScans`, `roundsCompleted`, `completionRate` (percent of the checkpoints scanned out of all the checkpoints of the rounds of the guard; not the share of rounds completed) and `avgTimeBetweenScans` (seconds; null without data), plus a team `summary` and the most scanned checkpoints (`topCheckpoints`). Dates are calendar days in the time zone of the account; without a period it covers everything the data retention allows. `retentionCutoff` (UTC; null when unlimited): the period never starts before it, so older activity is not counted. With `truncated: true` the list is capped. It is activity data, not an assessment of the people (it does not see shifts, absences or assigned tasks): present it with its period and do not draw conclusions from it on your own about the performance or employment of anyone.',
     },
     operationIds: ['getPatrollerRanking'],
   }),

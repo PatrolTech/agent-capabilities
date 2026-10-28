@@ -26,9 +26,9 @@ const vigilantesDesc =
   'Consulta la última actividad y el estado de los vigilantes de la cuenta del usuario.' +
   TRUNCADO_HINT;
 const statsVigilanteDesc =
-  "Consulta las estadísticas de un vigilante concreto por su nombre: total de escaneos, rondas completadas/totales, tasa de finalización y tiempo medio entre escaneos. Úsala cuando el usuario pregunte por un vigilante específico (p. ej. '¿cómo va Juan García?', 'estadísticas de María'). Si el resultado trae `ambigua`, el nombre casa con varios vigilantes: pregunta cuál.";
+  "Consulta las estadísticas de un vigilante concreto por su nombre: total de escaneos, rondas completadas/totales, tasa de finalización (porcentaje de checkpoints escaneados sobre el total de checkpoints de sus rondas; no es el porcentaje de rondas completadas) y tiempo medio entre escaneos. Úsala cuando el usuario pregunte por un vigilante específico (p. ej. '¿cómo va Juan García?', 'estadísticas de María'). Si el resultado trae `ambigua`, el nombre casa con varios vigilantes: pregunta cuál.";
 const rankingDesc =
-  "Consulta el ranking de vigilantes de la organización: cada uno con sus escaneos, rondas completadas y tasa de finalización (ordenado de mejor a peor), más un resumen del equipo y los checkpoints más escaneados. Admite periodo/fechas. Úsala para '¿quién va mejor/peor?', 'ranking de vigilantes', 'cómo va el equipo', 'qué checkpoint se escanea más', en vez de montar tú un ranking con la actividad o los escaneos. Son datos de actividad, no una valoración de las personas: preséntalos con su periodo y sin sacar por tu cuenta conclusiones sobre el desempeño o el empleo de nadie." +
+  "Consulta el ranking de vigilantes de la organización: cada uno con sus escaneos, rondas completadas y tasa de finalización (porcentaje de checkpoints escaneados sobre el total de checkpoints de sus rondas; no es el porcentaje de rondas completadas) (ordenado de mejor a peor), más un resumen del equipo y los checkpoints más escaneados. Admite periodo/fechas. Úsala para '¿quién va mejor/peor?', 'ranking de vigilantes', 'cómo va el equipo', 'qué checkpoint se escanea más', en vez de montar tú un ranking con la actividad o los escaneos. Son datos de actividad, no una valoración de las personas: preséntalos con su periodo y sin sacar por tu cuenta conclusiones sobre el desempeño o el empleo de nadie." +
   TRUNCADO_HINT;
 const escaneosPorVigilanteDesc =
   'Recuento de escaneos por vigilante en un periodo (por defecto los últimos 7 días): total, válidos, sospechosos, no válidos (rechazados) y pendientes de revisión, ordenado de más a menos escaneos (`puesto`). Incluye a los vigilantes sin ningún escaneo. Úsala para «¿cuántos escaneos ha hecho cada vigilante?», «ranking por escaneos», «¿quién tiene más sospechosos?». Válido y sospechoso son independientes: un escaneo puede ser las dos cosas. Para rondas completadas y tasa de finalización usa consultar_ranking_vigilantes.';
@@ -37,22 +37,26 @@ const enlacesAppDesc =
   TRUNCADO_HINT;
 
 /** Traduce el resultado del gateway a `ToolResult`: ambigua y no-encontrado son fallos, no datos. */
-function statsVigilanteResult(result: PatrollerStatsResult): ToolResult<PatrollerStatsResult> {
-  if (result.found) return ok(result);
+function statsVigilanteResult(
+  result: PatrollerStatsResult,
+  idioma: FixedTextLanguage
+): ToolResult<PatrollerStatsResult> {
+  if (result.found) return ok(result, { avisos: [avisoRankingPrudente(idioma)] });
   if (result.ambigua) return failAmbigua('el nombre indicado', 'vigilantes', result.opciones);
   return failNoEncontrado('vigilante', result.opciones);
 }
 
 /**
- * Cómo presentar un ranking de personas: son recuentos de actividad del periodo, no una valoración
- * de nadie (no ven turnos, ausencias ni tareas asignadas). Indicación, no prohibición: el
- * ranking se da, con su contexto.
+ * Cómo presentar el ranking o las estadísticas de una persona: son cifras de actividad del periodo,
+ * no una valoración de nadie (no ven turnos, ausencias ni tareas asignadas), así que tampoco dicen si
+ * alguien lo hizo bien o mal, ni si cumplió o falló. Indicación, no prohibición: los datos se dan,
+ * con su contexto.
  */
 export function avisoRankingPrudente(idioma: FixedTextLanguage): string {
   return segunIdioma(idioma, {
-    es: 'Son datos de actividad del periodo, no una valoración de las personas: no reflejan turnos, ausencias ni las tareas que tenía asignadas cada vigilante. Preséntalos como datos, con su periodo, y no saques de ellos por tu cuenta conclusiones sobre el desempeño ni decisiones laborales de nadie.',
-    en: "This is activity data for the period, not an assessment of the people: it does not reflect shifts, absences or each guard's assigned tasks. Present it as data, with its period, and do not draw conclusions about anyone's performance or employment from it on your own.",
-    fr: "Ce sont des données d'activité de la période, pas une évaluation des personnes : elles ne reflètent ni les horaires, ni les absences, ni les tâches assignées à chaque agent. Présentez-les comme des données, avec leur période, et n'en tirez pas vous-même de conclusions sur la performance ou l'emploi de quiconque.",
+    es: 'Son datos de actividad del periodo, no una valoración de las personas: no reflejan turnos, ausencias ni las tareas que tenía asignadas cada vigilante. Da solo cifras con su periodo: no afirmes si alguien lo ha hecho bien o mal, ni si ha cumplido o fallado, y no saques de ellas por tu cuenta conclusiones sobre el desempeño ni decisiones laborales de nadie.',
+    en: "This is activity data for the period, not an assessment of the people: it does not reflect shifts, absences or each guard's assigned tasks. Give only figures with their period: do not say whether anyone did well or badly, or whether they met or failed what was expected, and do not draw conclusions about anyone's performance or employment from them on your own.",
+    fr: "Ce sont des données d'activité de la période, pas une évaluation des personnes : elles ne reflètent ni les horaires, ni les absences, ni les tâches assignées à chaque agent. Donnez seulement des chiffres avec leur période : n'affirmez pas si quelqu'un a bien ou mal travaillé, ni s'il a rempli ou manqué ce qui était attendu, et n'en tirez pas vous-même de conclusions sur la performance ou l'emploi de quiconque.",
   });
 }
 
@@ -148,8 +152,11 @@ export function patrollerReads({ gateway, urls }: ReadEnv): ReadCapability[] {
           .min(1)
           .describe('Nombre del vigilante/patrullero (nunca vacío: si no lo sabes, pregúntalo)'),
       },
-      call: async ({ org, token }, { vigilante }) =>
-        statsVigilanteResult(await gateway.getPatrollerStats(org.orgId, token, vigilante)),
+      call: async ({ org, token, language }, { vigilante }) =>
+        statsVigilanteResult(
+          await gateway.getPatrollerStats(org.orgId, token, vigilante),
+          language
+        ),
     }),
     defineRead({
       name: 'consultar_ranking_vigilantes',
