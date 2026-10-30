@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { SdkPatrolTechGateway } from './SdkPatrolTechGateway.js';
 
 /**
- * `@patroltech/sdk-api` ya codifica los parámetros de ruta: el gateway pasa los
- * ids tal cual y cada carácter especial llega a la URL codificado UNA sola vez
- * (`/` → `%2F`, espacio → `%20`), nunca dos (`%252F`, `%2520`).
+ * `@patroltech/sdk-api` ya codifica los parámetros de ruta y de query: el gateway
+ * pasa los ids tal cual y cada carácter especial llega a la URL codificado UNA sola
+ * vez (`/` → `%2F`; el espacio, `%20` en la ruta y `+` en la query, la de
+ * `URLSearchParams`), nunca dos (`%252F`, `%2520`).
  */
 
 const apiBase = 'http://api.test';
@@ -28,9 +29,9 @@ function recordingGateway() {
 const ignore = () => undefined;
 
 describe.each([
-  ['una barra', 'a/b', 'a%2Fb'],
-  ['espacios', 'a b c', 'a%20b%20c'],
-])('ids con %s llegan a la URL codificados una sola vez', (_caso, id, encoded) => {
+  ['una barra', 'a/b', 'a%2Fb', 'a%2Fb'],
+  ['espacios', 'a b c', 'a%20b%20c', 'a+b+c'],
+])('ids con %s llegan a la URL codificados una sola vez', (_caso, id, encoded, inQuery) => {
   it('ruta con un parámetro (getRouteDetails)', async () => {
     const { gateway, urls } = recordingGateway();
 
@@ -47,7 +48,7 @@ describe.each([
     expect(urls).toEqual([`/api/routes/${encoded}/checkpoints/${encoded}-cp`]);
   });
 
-  it('ruta del SDK más query montada a mano (getIncidentDetail)', async () => {
+  it('ruta y query del SDK (getIncidentDetail)', async () => {
     const { gateway, urls } = recordingGateway();
 
     await gateway
@@ -55,11 +56,11 @@ describe.each([
       .catch(ignore);
 
     expect(urls).toEqual([
-      `/api/features/incident-reporting/incidents/${encoded}?organizationId=org%20${encoded}`,
+      `/api/features/incident-reporting/incidents/${encoded}?organizationId=org+${inQuery}`,
     ]);
   });
 
-  it('escritura con query montada a mano (updateIncidentStatus)', async () => {
+  it('escritura con ruta y query del SDK (updateIncidentStatus)', async () => {
     const { gateway, urls } = recordingGateway();
 
     await gateway
@@ -70,7 +71,7 @@ describe.each([
       .catch(ignore);
 
     expect(urls).toEqual([
-      `/api/features/incident-reporting/incidents/${encoded}/status?locationId=${encoded}`,
+      `/api/features/incident-reporting/incidents/${encoded}/status?locationId=${inQuery}`,
     ]);
   });
 

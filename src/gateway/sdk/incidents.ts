@@ -1,10 +1,14 @@
 import {
+  addIncidentComment,
+  assignIncident as sdkAssignIncident,
   getAddIncidentCommentUrl,
   getAssignIncidentUrl,
   getGetIncidentDetailUrl,
+  getIncidentDetail as sdkGetIncidentDetail,
   getListIncidentsUrl,
   getUpdateIncidentStatusUrl,
   listIncidents as sdkListIncidents,
+  updateIncidentStatus as sdkUpdateIncidentStatus,
   type IncidentDetailResponse,
   type IncidentDetailResponseMediaItem,
   type ListIncidentsParams,
@@ -32,19 +36,15 @@ type IncidentDetailItem = Omit<IncidentDetailResponse, 'media'> & {
 };
 
 /**
- * URL de una incidencia con su ámbito en la query: la API comprueba con él que la
- * App de incidencias está activa y el rol del usuario (sin la ubicación solo vale el
- * rol de organización y un editor de ubicación recibiría 403). Con `locationId` la
- * API deduce la organización de la ubicación.
- *
- * El OpenAPI de estas operaciones aún no declara esa query: la ruta sale del SDK
- * y la query se añade aquí (README, «Pending OpenAPI coverage»).
+ * Ámbito de una incidencia, en la query de detalle, estado, asignación y comentarios:
+ * la API comprueba con él que la App de incidencias está activa y el rol del usuario
+ * (sin la ubicación solo vale el rol de organización y un editor de ubicación
+ * recibiría 403). Con `locationId` la API deduce la organización de la ubicación.
  */
-function incidentUrl(t: IncidentTarget, pathFor: (id: string) => string): string {
-  const scope = t.locationId
-    ? `locationId=${encodeURIComponent(t.locationId)}`
-    : `organizationId=${encodeURIComponent(t.organizationId)}`;
-  return `${pathFor(t.incidentId)}?${scope}`;
+type IncidentScope = { locationId: string } | { organizationId: string };
+
+function incidentScope(t: IncidentTarget): IncidentScope {
+  return t.locationId ? { locationId: t.locationId } : { organizationId: t.organizationId };
 }
 
 export async function listIncidents(
@@ -81,12 +81,12 @@ export async function getIncidentDetail(
   target: IncidentTarget,
   token: string
 ): Promise<IncidentDetail | null> {
+  const id = target.incidentId;
+  const scope = incidentScope(target);
   let i: IncidentDetailItem;
   try {
-    i = await t.uncovered<IncidentDetailItem>(
-      token,
-      'GET',
-      incidentUrl(target, getGetIncidentDetailUrl)
+    i = await t.data(token, getGetIncidentDetailUrl(id, scope), (init) =>
+      sdkGetIncidentDetail(id, scope, init)
     );
   } catch (err) {
     if (isNotFound(err)) return null;
@@ -129,10 +129,15 @@ export async function updateIncidentStatus(
   input: IncidentTarget & { estado: IncidentStatus; comentario?: string },
   token: string
 ): Promise<void> {
-  await t.uncovered(token, 'PATCH', incidentUrl(input, getUpdateIncidentStatusUrl), {
+  const id = input.incidentId;
+  const scope = incidentScope(input);
+  const body = {
     status: input.estado,
     ...(input.comentario ? { comment: input.comentario } : {}),
-  });
+  };
+  await t.envelope(token, getUpdateIncidentStatusUrl(id, scope), (init) =>
+    sdkUpdateIncidentStatus(id, body, scope, init)
+  );
 }
 
 export async function assignIncident(
@@ -140,9 +145,11 @@ export async function assignIncident(
   input: IncidentTarget & { userId: string },
   token: string
 ): Promise<void> {
-  await t.uncovered(token, 'PATCH', incidentUrl(input, getAssignIncidentUrl), {
-    assignToUserId: input.userId,
-  });
+  const id = input.incidentId;
+  const scope = incidentScope(input);
+  await t.envelope(token, getAssignIncidentUrl(id, scope), (init) =>
+    sdkAssignIncident(id, { assignToUserId: input.userId }, scope, init)
+  );
 }
 
 export async function commentIncident(
@@ -150,7 +157,9 @@ export async function commentIncident(
   input: IncidentTarget & { comentario: string },
   token: string
 ): Promise<void> {
-  await t.uncovered(token, 'POST', incidentUrl(input, getAddIncidentCommentUrl), {
-    comment: input.comentario,
-  });
+  const id = input.incidentId;
+  const scope = incidentScope(input);
+  await t.envelope(token, getAddIncidentCommentUrl(id, scope), (init) =>
+    addIncidentComment(id, { comment: input.comentario }, scope, init)
+  );
 }
