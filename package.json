@@ -1,6 +1,6 @@
 {
   "name": "@patroltech/agent-capabilities",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Channel-agnostic PatrolTech agent capabilities (reads, proposed actions and domain helpers) on top of the public PatrolTech SDK, for chat bots and MCP servers",
   "license": "MIT",
   "author": "Ingenieros Web SL <info@patroltech.app>",
@@ -41,13 +41,15 @@
   },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
-    "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "lint": "eslint \"src/**/*.ts\" \"scripts/**/*.mjs\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"scripts/**/*.mjs\" --fix",
     "typecheck": "tsc -p tsconfig.spec.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:scripts": "node --test \"scripts/*.test.mjs\"",
+    "version:check": "node scripts/check-version-bump.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
