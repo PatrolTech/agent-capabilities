@@ -149,8 +149,10 @@ Contributions are welcome through pull requests. Security issues: see [SECURITY.
 
 ## Related
 
-- [`@patroltech/sdk-api`](https://github.com/PatrolTech/sdk-api): the TypeScript SDK and the public OpenAPI contract, with the OAuth 2.1 flow.
+- [`@patroltech/sdk-api`](https://github.com/PatrolTech/sdk-api): the TypeScript SDK and the public OpenAPI contract, with the OAuth 2.1 flow. Browse the endpoints in the [API reference](https://patroltech.github.io/sdk-api/).
 - [PatrolTech MCP connector](https://mcp.patroltech.online/mcp) and its client configurations in [`PatrolTech/ai-integrations`](https://github.com/PatrolTech/ai-integrations).
+
+Webhooks are in development: tell us which events you need at **info@patroltech.app**.
 
 ## About PatrolTech
 
