@@ -8,9 +8,7 @@ import {
   getLicenseInfo,
   getPaymentPrices,
   type GetPaymentPricesParams,
-  type LicenseUsage,
   type PaymentPricesResponseItem,
-  type PlanPricing,
 } from '@patroltech/sdk-api';
 import type { CheckoutLinkInput, PaidPlan, PlanUsage } from '../types/index.js';
 import type { SdkTransport } from './transport.js';
@@ -18,13 +16,12 @@ import type { SdkTransport } from './transport.js';
 /**
  * Entrada de `GET /api/payments/prices`.
  * `currency` es la de la organización (`EUR`/`USD`); `pricing` es null para Free o
- * un plan fuera del price book (el `allOf` nullable que genera orval pierde el null)
- * e importa en céntimos, por moneda en minúsculas.
+ * un plan fuera del price book e importa en céntimos, por moneda en minúsculas.
  */
 function toPaidPlan(p: PaymentPricesResponseItem): PaidPlan | null {
   const moneda = p.currency.toLowerCase();
-  const pr: PlanPricing | null = p.pricing;
-  if (!pr) return null;
+  const pr = p.pricing;
+  if (pr === null) return null;
   const importe = (porMoneda: Record<string, number>): number | null =>
     typeof porMoneda[moneda] === 'number' ? porMoneda[moneda] / 100 : null;
   const [mb, me, ab, ae] = [
@@ -57,8 +54,7 @@ export async function getPlanUsage(
 ): Promise<PlanUsage> {
   const id = accountId;
   const body = await t.data(token, getGetLicenseInfoUrl(id), (init) => getLicenseInfo(id, init));
-  // `usage` puede ser null (el `allOf` nullable que genera orval pierde el null).
-  const u: LicenseUsage | null = body.usage;
+  const u = body.usage;
   return {
     plan: body.tier.name,
     estadoLicencia: body.license.status,
