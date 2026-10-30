@@ -1,4 +1,4 @@
-import { csvBytes, fechaLocal } from './scans-csv.js';
+import { csvBytes, fechaLocal } from './csv.js';
 
 /**
  * Lo que el CSV necesita de un registro de acceso: subconjunto estructural del

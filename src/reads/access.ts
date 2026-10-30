@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 import { TIPO_ACCESO } from '../domain/access-logs-csv.js';
 import { resolveDateRange } from '../domain/date-range.js';
-import { fechaLocal } from '../domain/scans-csv.js';
+import { fechaLocal } from '../domain/csv.js';
 import { ok, type ToolResult } from '../domain/tool-result.js';
 import type { AccessLogEntry, PatrolTechGateway } from '../gateway/index.js';
 import {

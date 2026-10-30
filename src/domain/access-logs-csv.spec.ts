@@ -35,10 +35,12 @@ describe('accessLogsCsv', () => {
     expect(primeraFila([registro({ destino: 'Nave,=1+1' })])).toContain(';"Nave,=1+1";');
   });
 
-  it('sigue neutralizando el inicio de fórmula (=, +, -, @)', () => {
-    for (const valor of ['=1+1', '+1', '-1', '@SUM(A1)']) {
+  it('sigue neutralizando el inicio de fórmula (=, +, -, @), también con espacios delante', () => {
+    const espacioDuro = String.fromCharCode(0xa0);
+    for (const valor of ['=1+1', '+1', '-1', '@SUM(A1)', ' =1+1', `${espacioDuro}+1`]) {
       expect(primeraFila([registro({ visitante: valor })])).toContain(`;'${valor};`);
     }
+    expect(primeraFila([registro({ notas: '\r=1' })])).toContain(`;"'\r=1"`);
   });
 
   it('un valor sin caracteres especiales no se entrecomilla', () => {
