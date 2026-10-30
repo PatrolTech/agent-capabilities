@@ -53,7 +53,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@patroltech/sdk-api": "^1.2.0",
+    "@patroltech/sdk-api": "^2.0.0",
     "qrcode": "^1.5.4"
   },
   "peerDependencies": {

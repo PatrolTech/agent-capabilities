@@ -1,4 +1,4 @@
-import { createApiClient, sdkFetch, type SdkRequestInit } from '@patroltech/sdk-api';
+import { createApiClient, type SdkRequestInit } from '@patroltech/sdk-api';
 import type { Logger } from '../../ports/Logger.js';
 import { toPatrolTechApiError } from './errors.js';
 
@@ -18,8 +18,8 @@ export type SuccessData<R> = R extends { status: 200 | 201 | 202 | 203 | 204 | 2
   : never;
 
 /**
- * Lo que devuelve `sdkFetch` además de `data`: el resto de campos del envelope
- * (`message`, `meta`…), que el OpenAPI no describe.
+ * Lo que devuelve una función generada del SDK además de `data`: el resto de campos
+ * del envelope (`message`, `meta`…), que el OpenAPI no describe.
  */
 export interface SdkEnvelopeExtras {
   meta?: unknown;
@@ -49,8 +49,6 @@ function sinAuthorization(headers: Record<string, string>): Record<string, strin
     Object.entries(headers).filter(([name]) => !/^authorization$/i.test(name))
   );
 }
-
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 /** Configuración de `callSdk`: la misma para todos los usuarios (el token va en cada llamada). */
 export type SdkCallConfig = Pick<
@@ -109,7 +107,7 @@ export class SdkTransport {
     path: string,
     call: SdkCall<R>
   ): Promise<R & SdkEnvelopeExtras> {
-    // `sdkFetch` devuelve, además de lo tipado, el resto del envelope (`message`, `meta`…).
+    // El SDK devuelve, además de lo tipado, el resto del envelope (`message`, `meta`…).
     return (await callSdk(this.config, token, path, call)) as R & SdkEnvelopeExtras;
   }
 
@@ -123,24 +121,5 @@ export class SdkTransport {
     call: SdkCall<R>
   ): Promise<SuccessData<R>> {
     return (await this.envelope(token, path, call)).data as SuccessData<R>;
-  }
-
-  /**
-   * Endpoint o parámetro que el OpenAPI aún no describe (README, «Pending OpenAPI
-   * coverage»): misma vía del SDK (`sdkFetch` con la configuración de esta petición),
-   * con la URL completa construida por quien llama.
-   */
-  async uncovered<T>(token: string, method: HttpMethod, url: string, body?: unknown): Promise<T> {
-    // Sin tipo generado: `T` es el tipo local de la respuesta (README, «Untyped responses»).
-    const res = await this.envelope(token, url, (init) =>
-      sdkFetch<SdkResponse>(url, {
-        ...init,
-        method,
-        ...(body !== undefined
-          ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-          : {}),
-      })
-    );
-    return res.data as T;
   }
 }

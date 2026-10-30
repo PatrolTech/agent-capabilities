@@ -1,12 +1,12 @@
 import {
+  createCheckoutSession,
+  createCustomerPortalSession,
   getCreateCheckoutSessionUrl,
   getCreateCustomerPortalSessionUrl,
   getGetLicenseInfoUrl,
   getGetPaymentPricesUrl,
   getLicenseInfo,
   getPaymentPrices,
-  type CreateCheckoutSessionResponse,
-  type CreateCustomerPortalSessionResponse,
   type GetPaymentPricesParams,
   type LicenseUsage,
   type PaymentPricesResponseItem,
@@ -100,22 +100,21 @@ export async function getPlans(
 }
 
 /**
- * La organización va en la query: la API la necesita para comprobar el rol y los
- * esquemas del body no la llevan. El
- * OpenAPI de estas operaciones aún no declara esa query (README, «Pending OpenAPI coverage»).
+ * La organización va en la query `organizationId` (la API la necesita para comprobar
+ * el rol y los esquemas del body no la llevan). El contrato también la acepta en la
+ * cabecera `x-organization-id`, pero la query entra por `params` de la función
+ * generada y sale igual en la URL que nombra la ruta en el error.
  */
-function withOrganization(path: string, accountId: string): string {
-  return `${path}?organizationId=${encodeURIComponent(accountId)}`;
-}
-
 export async function createCheckoutLink(
   t: SdkTransport,
   accountId: string,
   input: CheckoutLinkInput,
   token: string
 ): Promise<string> {
-  const url = withOrganization(getCreateCheckoutSessionUrl(), accountId);
-  const body = await t.uncovered<CreateCheckoutSessionResponse>(token, 'POST', url, input);
+  const params = { organizationId: accountId };
+  const body = await t.data(token, getCreateCheckoutSessionUrl(params), (init) =>
+    createCheckoutSession(input, params, init)
+  );
   return body.sessionUrl;
 }
 
@@ -125,9 +124,9 @@ export async function createCustomerPortalLink(
   returnUrl: string,
   token: string
 ): Promise<string> {
-  const url = withOrganization(getCreateCustomerPortalSessionUrl(), accountId);
-  const body = await t.uncovered<CreateCustomerPortalSessionResponse>(token, 'POST', url, {
-    returnUrl,
-  });
+  const params = { organizationId: accountId };
+  const body = await t.data(token, getCreateCustomerPortalSessionUrl(params), (init) =>
+    createCustomerPortalSession({ returnUrl }, params, init)
+  );
   return body.sessionUrl;
 }

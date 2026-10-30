@@ -122,17 +122,6 @@ Names of routes, checkpoints, locations and guards, incident texts and user name
 
 ### Known contract gaps
 
-Calls made with `sdkFetch` and the SDK URL builder because the contract does not declare a query parameter the API needs yet:
-
-| operationId                   | Call                                                            | Missing in the contract                |
-| ----------------------------- | --------------------------------------------------------------- | -------------------------------------- |
-| `getIncidentDetail`           | `GET /api/features/incident-reporting/incidents/{id}`           | query `locationId` or `organizationId` |
-| `updateIncidentStatus`        | `PATCH /api/features/incident-reporting/incidents/{id}/status`  | same                                   |
-| `assignIncident`              | `PATCH /api/features/incident-reporting/incidents/{id}/assign`  | same                                   |
-| `addIncidentComment`          | `POST /api/features/incident-reporting/incidents/{id}/comments` | same                                   |
-| `createCheckoutSession`       | `POST /api/payments/checkout-session`                           | query `organizationId`                 |
-| `createCustomerPortalSession` | `POST /api/payments/customer-portal`                            | same                                   |
-
 Types completed by hand where the contract is loose:
 
 | operationId                           | Gap                                                                 | Local type                                               |
