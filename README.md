@@ -156,6 +156,8 @@ npm test            # needs network access to read the published contract
 npm run build
 ```
 
+A merge to `main` publishes to npm only when `version` in `package.json` is new, so CI fails a pull request that changes the published package (`src/` without specs, `README.md`, `LICENSE`, `tsconfig.json` or the `dependencies`, `exports` and similar fields of `package.json`) without raising it. Tests, CI, internal docs and `devDependencies` need no bump. Check it locally with `npm run version:check -- origin/main` and `npm run test:scripts`.
+
 Contributions are welcome through pull requests. Security issues: see [SECURITY.md](./SECURITY.md); never include credentials, tokens or customer data in issues.
 
 ## Related

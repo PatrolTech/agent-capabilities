@@ -13,6 +13,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # release.yml publishes only a version that is not on npm yet: a change to the
+  # package merged without raising `version` would never be published. Tests, CI,
+  # internal docs and devDependencies need no bump; see scripts/check-version-bump.mjs.
+  version:
+    name: Version bump
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The base branch history, to diff against it and read its version.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      # No dependencies: the script only needs git and Node.
+      - name: Check the version bump
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check-version-bump.mjs "$BASE_SHA"
+
   build:
     name: Build and test (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -43,6 +68,8 @@ jobs:
       # Includes the check of every operationId against the public contract
       # published for the installed @patroltech/sdk-api version.
       - run: npm test
+
+      - run: npm run test:scripts
 
       - run: npm run build
 
