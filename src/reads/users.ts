@@ -50,7 +50,6 @@ export function userReads({ gateway, upsell }: ReadEnv): ReadCapability[] {
         return ok({
           usuarios: usuarios.map((u) => ({
             nombre: u.nombre,
-            email: u.email,
             roles: u.roles.map((r) => {
               const rol = ROL_LABEL[r.rol] ?? r.rol;
               return r.ambito === 'LOCATION'

@@ -15,13 +15,14 @@ describe('consultar_usuarios_y_roles', () => {
     const out = await run('consultar_usuarios_y_roles');
 
     expect(out.data?.usuarios).toEqual([
-      { nombre: 'Marta Ruiz', email: 'marta@acme.test', roles: ['Admin de toda la organización'] },
+      { nombre: 'Marta Ruiz', roles: ['Admin de toda la organización'] },
       {
         nombre: 'Pedro Gil',
-        email: 'pedro@acme.test',
         roles: ['Observador (Viewer) de la ubicación «Sucursal Norte»'],
       },
     ]);
+    // Sin emails: para saber quién tiene qué rol basta el nombre (datos mínimos).
+    expect(JSON.stringify(out.data)).not.toContain('@');
     expect(out.data?.queHaceCadaRol).toMatchObject({
       editor: expect.stringContaining('crea y edita checkpoints, rutas, patrulleros') as unknown,
     });
