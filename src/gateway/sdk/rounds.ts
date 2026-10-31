@@ -108,7 +108,6 @@ export async function getRoundsDetail(
       } catch (err) {
         // Una ruta cuya consulta de rondas falla no debe tumbar el resto, pero
         // tampoco puede parecer "sin rondas": se marca el error.
-        rawRounds = [];
         error = `no se pudieron leer las rondas de esta ruta: ${err instanceof Error ? err.message : String(err)}`;
       }
       return {
