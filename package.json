@@ -1,6 +1,6 @@
 {
   "name": "@patroltech/agent-capabilities",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Channel-agnostic PatrolTech agent capabilities (reads, proposed actions and domain helpers) on top of the public PatrolTech SDK, for chat bots and MCP servers",
   "license": "MIT",
   "author": "Ingenieros Web SL <info@patroltech.app>",
