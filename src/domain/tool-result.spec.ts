@@ -62,7 +62,10 @@ describe('safeExecute', () => {
 
   it.each([
     ['unpaid', 'está suspendida por un pago pendiente'],
-    ['over_plan_limit', 'porque usa más puntos de control de los que incluye el plan gratuito'],
+    [
+      'over_plan_limit',
+      'porque usa más de lo que incluye el plan gratuito (checkpoints, sitios o gestores)',
+    ],
     ['manual', 'Si crees que es un error'],
   ])(
     'un 423 de cuenta suspendida (%s) llega al modelo con el texto explicado al cliente',

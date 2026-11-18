@@ -70,14 +70,14 @@ const textsFor = ({ dashboard, license }: PatrolTechUrls) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' porque usa más puntos de control de los que incluye el plan gratuito'
+            ? ' porque usa más de lo que incluye el plan gratuito (checkpoints, sitios o gestores)'
             : motivo === 'unpaid'
               ? ' por un pago pendiente'
               : '';
         return `La cuenta de esa organización está suspendida${porque}.`;
       },
       account_suspended_unpaid: `Un administrador puede reactivarla pagando o actualizando el método de pago en Licencia: ${license}.`,
-      account_suspended_over_plan_limit: `Un administrador puede reactivarla eligiendo un plan en Licencia: ${license}, o escríbeme por aquí si prefieres seguir en el plan gratuito.`,
+      account_suspended_over_plan_limit: `Un administrador puede reactivarla eligiendo un plan en Licencia: ${license}.`,
       account_suspended_manual: 'Si crees que es un error, cuéntamelo y lo reviso con el equipo.',
       invalid_data: (m?: string) =>
         `El panel no ha aceptado los datos${m ? `: ${conPunto(m)}` : '.'}`,
@@ -115,14 +115,14 @@ const textsFor = ({ dashboard, license }: PatrolTechUrls) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' because it uses more checkpoints than the free plan includes'
+            ? ' because it uses more than the free plan includes (checkpoints, sites or managers)'
             : motivo === 'unpaid'
               ? ' because of a pending payment'
               : '';
         return `That organization's account is suspended${porque}.`;
       },
       account_suspended_unpaid: `An administrator can reactivate it by paying or updating the payment method in License: ${license}.`,
-      account_suspended_over_plan_limit: `An administrator can reactivate it by choosing a plan in License: ${license}, or write to me here if you prefer to stay on the free plan.`,
+      account_suspended_over_plan_limit: `An administrator can reactivate it by choosing a plan in License: ${license}.`,
       account_suspended_manual:
         'If you think this is a mistake, tell me and I will review it with the team.',
       invalid_data: (m?: string) =>
@@ -162,14 +162,14 @@ const textsFor = ({ dashboard, license }: PatrolTechUrls) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? " car elle utilise plus de checkpoints que n'en inclut le forfait gratuit"
+            ? " car elle utilise plus que ce qu'inclut le forfait gratuit (checkpoints, sites ou gestionnaires)"
             : motivo === 'unpaid'
               ? " en raison d'un paiement en attente"
               : '';
         return `Le compte de cette organisation est suspendu${porque}.`;
       },
       account_suspended_unpaid: `Un administrateur peut le réactiver en payant ou en mettant à jour le moyen de paiement dans Licence : ${license}.`,
-      account_suspended_over_plan_limit: `Un administrateur peut le réactiver en choisissant un forfait dans Licence : ${license}, ou écrivez-moi ici si vous préférez rester sur le forfait gratuit.`,
+      account_suspended_over_plan_limit: `Un administrateur peut le réactiver en choisissant un forfait dans Licence : ${license}.`,
       account_suspended_manual:
         "Si vous pensez qu'il s'agit d'une erreur, dites-le-moi et je vérifierai avec l'équipe.",
       invalid_data: (m?: string) =>
@@ -221,7 +221,7 @@ const neutralTextsFor = (dashboard: string) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' porque usa más puntos de control de los incluidos'
+            ? ' porque usa más checkpoints, sitios o gestores de los incluidos'
             : motivo === 'unpaid'
               ? ' por un pago pendiente'
               : '';
@@ -241,7 +241,7 @@ const neutralTextsFor = (dashboard: string) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' because it uses more checkpoints than are included'
+            ? ' because it uses more checkpoints, sites or managers than are included'
             : motivo === 'unpaid'
               ? ' because of a pending payment'
               : '';
@@ -261,7 +261,7 @@ const neutralTextsFor = (dashboard: string) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' car elle utilise plus de checkpoints que ceux inclus'
+            ? ' car elle utilise plus de checkpoints, de sites ou de gestionnaires que ceux inclus'
             : motivo === 'unpaid'
               ? " en raison d'un paiement en attente"
               : '';
