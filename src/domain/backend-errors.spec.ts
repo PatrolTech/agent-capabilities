@@ -217,7 +217,7 @@ describe('translateBackendError', () => {
       expect(r.kind).toBe('account_suspended');
       // Texto exacto: lo primero es que pague; quedarse gratis lo hace un Admin en el panel.
       expect(r.mensajeCliente).toBe(
-        'La cuenta de esa organización está suspendida porque usa más de lo que incluye el plan gratuito (checkpoints, ubicaciones o gestores). ' +
+        'La cuenta de esa organización está suspendida porque usa más de lo que incluye el plan gratuito (checkpoints, sitios o gestores). ' +
           'No se ha hecho ningún cambio. ' +
           'Un administrador puede reactivarla eligiendo un plan en Licencia: https://dashboard.patroltech.online/license.'
       );
@@ -245,7 +245,7 @@ describe('translateBackendError', () => {
       const a = translateBackendError(suspended('over_plan_limit'), 'en');
       expect(a.kind).toBe('account_suspended');
       expect(a.mensajeCliente).toContain(
-        'account is suspended because it uses more than the free plan includes (checkpoints, locations or managers).'
+        'account is suspended because it uses more than the free plan includes (checkpoints, sites or managers).'
       );
       expect(a.mensajeCliente).toContain(
         'choosing a plan in License: https://dashboard.patroltech.online/license.'
@@ -499,12 +499,12 @@ describe('translateBackendError · upsell', () => {
   it('upsell: false en la suspensión remite al panel, sin plan', () => {
     const r = translateBackendError(suspendida('over_plan_limit'), 'es', { upsell: false });
     expect(r.mensajeCliente).toBe(
-      'La cuenta de esa organización está suspendida porque usa más checkpoints, ubicaciones o gestores de los incluidos. ' +
+      'La cuenta de esa organización está suspendida porque usa más checkpoints, sitios o gestores de los incluidos. ' +
         'No se ha hecho ningún cambio. Un administrador puede reactivarla desde el panel: https://dashboard.patroltech.online.'
     );
     const en = translateBackendError(suspendida('over_plan_limit'), 'en', { upsell: false });
     expect(en.mensajeCliente).toContain(
-      'because it uses more checkpoints, locations or managers than are included.'
+      'because it uses more checkpoints, sites or managers than are included.'
     );
     expect(en.mensajeCliente).toContain('from the dashboard: https://dashboard.patroltech.online.');
     const fr = translateBackendError(suspendida('over_plan_limit'), 'fr', { upsell: false });
