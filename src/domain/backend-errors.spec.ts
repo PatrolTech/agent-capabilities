@@ -216,12 +216,13 @@ describe('translateBackendError', () => {
       const r = translateBackendError(suspended('over_plan_limit'));
       expect(r.kind).toBe('account_suspended');
       expect(r.mensajeCliente).toContain(
-        'está suspendida porque usa más puntos de control de los que incluye el plan gratuito.'
+        'está suspendida porque usa más de lo que incluye el plan gratuito (checkpoints, sitios o gestores).'
       );
-      expect(r.mensajeCliente).toContain('https://dashboard.patroltech.online/license');
       expect(r.mensajeCliente).toContain(
-        'escríbeme por aquí si prefieres seguir en el plan gratuito'
+        'Un administrador puede reactivarla eligiendo un plan en Licencia: https://dashboard.patroltech.online/license.'
       );
+      // Lo primero es que pague: no invita a escribir para seguir gratis.
+      expect(r.mensajeCliente).not.toMatch(/escríbeme|seguir en el plan gratuito/);
       expect(r.mensajeCliente).toMatch(/No se ha hecho ningún cambio/);
     });
 
@@ -247,9 +248,17 @@ describe('translateBackendError', () => {
       const a = translateBackendError(suspended('over_plan_limit'), 'en');
       expect(a.kind).toBe('account_suspended');
       expect(a.mensajeCliente).toContain(
-        'account is suspended because it uses more checkpoints than the free plan includes.'
+        'account is suspended because it uses more than the free plan includes (checkpoints, sites or managers).'
       );
-      expect(a.mensajeCliente).toContain('/license');
+      expect(a.mensajeCliente).toContain(
+        'choosing a plan in License: https://dashboard.patroltech.online/license.'
+      );
+      expect(a.mensajeCliente).not.toMatch(/write to me|stay on the free plan/);
+      const f = translateBackendError(suspended('over_plan_limit'), 'fr');
+      expect(f.mensajeCliente).toContain(
+        "car elle utilise plus que ce qu'inclut le forfait gratuit (checkpoints, sites ou gestionnaires)."
+      );
+      expect(f.mensajeCliente).not.toMatch(/écrivez-moi|rester sur le forfait gratuit/);
       expect(translateBackendError(suspended('unpaid'), 'en').mensajeCliente).toContain(
         'because of a pending payment.'
       );
@@ -493,7 +502,7 @@ describe('translateBackendError · upsell', () => {
   it('upsell: false en la suspensión remite al panel, sin plan', () => {
     const r = translateBackendError(suspendida('over_plan_limit'), 'es', { upsell: false });
     expect(r.mensajeCliente).toBe(
-      'La cuenta de esa organización está suspendida porque usa más puntos de control de los incluidos. ' +
+      'La cuenta de esa organización está suspendida porque usa más checkpoints, sitios o gestores de los incluidos. ' +
         'No se ha hecho ningún cambio. Un administrador puede reactivarla desde el panel: https://dashboard.patroltech.online.'
     );
   });
