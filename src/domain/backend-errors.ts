@@ -70,7 +70,7 @@ const textsFor = ({ dashboard, license }: PatrolTechUrls) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' porque usa más de lo que incluye el plan gratuito (checkpoints, sitios o gestores)'
+            ? ' porque usa más de lo que incluye el plan gratuito (checkpoints, ubicaciones o gestores)'
             : motivo === 'unpaid'
               ? ' por un pago pendiente'
               : '';
@@ -115,7 +115,7 @@ const textsFor = ({ dashboard, license }: PatrolTechUrls) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' because it uses more than the free plan includes (checkpoints, sites or managers)'
+            ? ' because it uses more than the free plan includes (checkpoints, locations or managers)'
             : motivo === 'unpaid'
               ? ' because of a pending payment'
               : '';
@@ -221,7 +221,7 @@ const neutralTextsFor = (dashboard: string) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' porque usa más checkpoints, sitios o gestores de los incluidos'
+            ? ' porque usa más checkpoints, ubicaciones o gestores de los incluidos'
             : motivo === 'unpaid'
               ? ' por un pago pendiente'
               : '';
@@ -241,7 +241,7 @@ const neutralTextsFor = (dashboard: string) =>
       account_suspended: (motivo?: string) => {
         const porque =
           motivo === 'over_plan_limit'
-            ? ' because it uses more checkpoints, sites or managers than are included'
+            ? ' because it uses more checkpoints, locations or managers than are included'
             : motivo === 'unpaid'
               ? ' because of a pending payment'
               : '';
